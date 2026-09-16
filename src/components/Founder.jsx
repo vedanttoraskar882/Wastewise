@@ -44,7 +44,7 @@ export default function Founder() {
               Having worked as a Gelato Master at Amorino and in QSR food operations at McDonald's, Biral has personally experienced the daily challenge of deciding how much perishable food to prepare — often without reliable data to guide those decisions.
             </p>
             <p className="text-[#4a5568] leading-relaxed">
-              His MSc in Data Science and Analytics from the University of Westminster, combined with a Computer Engineering background and data-analysis experience, gave him the tools to start building a better solution.
+              Her MSc in Data Science and Analytics from the University of Westminster, combined with a Computer Engineering background and data-analysis experience, gave her the tools to start building a better solution.
             </p>
           </div>
 
