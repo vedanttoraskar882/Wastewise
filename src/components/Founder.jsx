@@ -77,14 +77,6 @@ export default function Founder() {
                   </div>
                 ))}
               </div>
-
-              {/* Quote */}
-              <blockquote className="mt-6 pt-6 border-t border-gray-100">
-                <p className="text-sm text-[#4a5568] italic leading-relaxed">
-                  "I've stood behind the counter deciding how many croissants to bake and how many scoops of gelato to prepare. I built WasteWise because I know that decision is harder than it looks — and that data can make it better."
-                </p>
-                <footer className="text-xs text-[#718096] mt-2">— Biral Prajapati, Founder</footer>
-              </blockquote>
             </div>
           </div>
         </div>
