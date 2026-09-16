@@ -1,0 +1,168 @@
+@import "tailwindcss";
+
+@theme {
+  --color-forest: #1a3a2a;
+  --color-forest-dark: #122a1e;
+  --color-green-deep: #2d5a3d;
+  --color-teal: #3d7a6e;
+  --color-teal-light: #4d9e8e;
+  --color-sage: #7aaa8f;
+  --color-sage-light: #a8c9b8;
+  --color-cream: #f9f5ee;
+  --color-cream-dark: #f0ead8;
+  --color-gold: #c9a84c;
+  --color-gold-light: #e0c172;
+  --color-charcoal: #1f2937;
+  --font-family-sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    font-family: var(--font-family-sans);
+  }
+
+  body {
+    background-color: white;
+    color: var(--color-charcoal);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    line-height: 1.2;
+  }
+}
+
+@layer utilities {
+  .scroll-mt-20 {
+    scroll-margin-top: 5rem;
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Custom animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-gentle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes dashFlow {
+  0% { stroke-dashoffset: 100; }
+  100% { stroke-dashoffset: 0; }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out both;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out both;
+}
+
+.animate-count-up {
+  animation: countUp 0.8s ease-out both;
+}
+
+.animate-pulse-gentle {
+  animation: pulse-gentle 3s ease-in-out infinite;
+}
+
+.reveal {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+.reveal-delay-5 { transition-delay: 0.5s; }
+.reveal-delay-6 { transition-delay: 0.6s; }
+
+/* Dashboard mockup glow */
+.mockup-glow {
+  box-shadow: 0 0 60px rgba(45, 90, 61, 0.15), 0 25px 50px rgba(0, 0, 0, 0.12);
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #2d5a3d 0%, #3d7a6e 50%, #c9a84c 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Card hover */
+.feature-card {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(26, 58, 42, 0.12);
+}
+
+/* Accordion */
+.accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s ease;
+}
+
+.accordion-content.open {
+  max-height: 600px;
+}
+
+/* Step connector */
+.step-line {
+  background: linear-gradient(to bottom, #2d5a3d, #3d7a6e);
+}
+
+/* Badge */
+.badge-forest {
+  background: rgba(45, 90, 61, 0.1);
+  color: #2d5a3d;
+  border: 1px solid rgba(45, 90, 61, 0.2);
+}
+
+/* Noise texture overlay for hero */
+.hero-bg {
+  background: linear-gradient(135deg, #1a3a2a 0%, #2d5a3d 40%, #1a3a2a 100%);
+}
+
+/* Pricing card highlight */
+.pricing-highlight {
+  background: linear-gradient(135deg, #2d5a3d 0%, #1a3a2a 100%);
+  box-shadow: 0 20px 60px rgba(26, 58, 42, 0.35);
+}
