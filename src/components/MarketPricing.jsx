@@ -21,7 +21,7 @@ const PLANS = [
     period: 'per user / month',
     target: 'Growing fresh-food operations',
     highlight: true,
-    badge: 'Most Popular',
+    badge: 'Recommended',
     features: [
       'Designed for growing fresh-food operations',
       'Product-level forecasting',
