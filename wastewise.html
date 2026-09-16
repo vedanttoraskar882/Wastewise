@@ -846,7 +846,20 @@
       transition:border-color .2s,box-shadow .2s;outline:none;
     }
     .form-input:focus { border-color:var(--forest-mid);box-shadow:0 0 0 3px rgba(45,90,61,.1); }
-    .form-input::placeholder { color:#9ca3af; }
+    .form-input.input-error {
+      border-color: #ef4444 !important;
+      background-color: rgba(254, 242, 242, 0.3) !important;
+    }
+    .form-input.input-error:focus {
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
+    }
+    .field-error {
+      color: #dc2626;
+      font-size: 12px;
+      font-weight: 500;
+      margin-top: 6px;
+      display: none;
+    }
     .form-error {
       background:#fef2f2;border:1px solid #fecaca;color:#dc2626;
       font-size:13px;padding:11px 14px;border-radius:10px;margin-top:14px;
@@ -1933,7 +1946,7 @@
             <div class="success-icon">
               <svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
             </div>
-            <h3 class="success-h3">Thank you. Your pilot request has been saved successfully.</h3>
+            <h3 class="success-h3">Thank you. Your pilot request has been submitted successfully.</h3>
             <p class="success-p">We appreciate your interest in WasteWise. We will be in touch to discuss how we can help your business reduce avoidable waste.</p>
             <button class="success-again" onclick="resetForm()">Submit another request</button>
           </div>
@@ -1944,21 +1957,24 @@
             <form id="pilot-form" onsubmit="handlePilotSubmit(event)" novalidate>
               <div class="form-group">
                 <label class="form-label" for="fullName">Full Name <span class="form-required">*</span></label>
-                <input class="form-input" type="text" id="fullName" name="fullName" autocomplete="name" required placeholder="e.g. Jane Smith" />
+                <input class="form-input" type="text" id="fullName" name="fullName" autocomplete="name" required placeholder="e.g. Jane Smith" onblur="validateFieldOnBlur('fullName')" oninput="handleFieldInput('fullName')" />
+                <div class="field-error" id="fullName-error"></div>
               </div>
               <div class="form-group">
                 <label class="form-label" for="phoneNumber">Phone Number <span class="form-required">*</span></label>
-                <input class="form-input" type="tel" id="phoneNumber" name="phoneNumber" autocomplete="tel" required placeholder="e.g. +44 7700 900123" />
+                <input class="form-input" type="tel" id="phoneNumber" name="phoneNumber" autocomplete="tel" required placeholder="e.g. +44 7700 900123" onblur="validateFieldOnBlur('phoneNumber')" oninput="handleFieldInput('phoneNumber')" />
+                <div class="field-error" id="phoneNumber-error"></div>
               </div>
               <div class="form-group">
                 <label class="form-label" for="emailAddress">Email Address <span class="form-required">*</span></label>
-                <input class="form-input" type="email" id="emailAddress" name="emailAddress" autocomplete="email" required placeholder="e.g. jane@yourbakery.co.uk" />
+                <input class="form-input" type="email" id="emailAddress" name="emailAddress" autocomplete="email" required placeholder="e.g. jane@yourbakery.co.uk" onblur="validateFieldOnBlur('emailAddress')" oninput="handleFieldInput('emailAddress')" />
+                <div class="field-error" id="emailAddress-error"></div>
               </div>
               <div class="form-group">
                 <label class="form-label" for="organisationName">Organisation Name <span class="form-required">*</span></label>
-                <input class="form-input" type="text" id="organisationName" name="organisationName" autocomplete="organization" required placeholder="e.g. Smith Bakery" />
+                <input class="form-input" type="text" id="organisationName" name="organisationName" autocomplete="organization" required placeholder="e.g. Smith Bakery" onblur="validateFieldOnBlur('organisationName')" oninput="handleFieldInput('organisationName')" />
+                <div class="field-error" id="organisationName-error"></div>
               </div>
-              <div class="form-error" id="form-error" style="display:none;"></div>
               <button type="submit" class="form-submit">Request a Pilot</button>
               <p class="form-note">For this frontend prototype, submitted details are stored locally in this browser.</p>
             </form>
@@ -2137,29 +2153,116 @@ function toggleFAQ(index) {
   }
 }
 
-/* ---------- Request a Pilot — localStorage ---------- */
+/* ---------- Request a Pilot — Validation & localStorage ---------- */
+function validateFieldValue(name, value) {
+  var trimmed = value.trim();
+  switch (name) {
+    case 'fullName':
+      if (!trimmed) return 'Please enter your full name.';
+      if (trimmed.length < 2) return 'Full name must be at least 2 characters.';
+      if (!/^[a-zA-Z\s]+$/.test(trimmed)) {
+        return 'Please enter a valid full name containing only letters and spaces.';
+      }
+      if (trimmed.replace(/\s+/g, '').length < 2) {
+        return 'Full name must contain at least 2 letters.';
+      }
+      return '';
+
+    case 'phoneNumber':
+      if (!trimmed) return 'Please enter your phone number.';
+      if (/[a-zA-Z]/.test(trimmed)) {
+        return 'Please enter a valid phone number containing only digits.';
+      }
+      if (!/^[+]?[\d\s\-()]+$/.test(trimmed)) {
+        return 'Please enter a valid phone number containing only digits.';
+      }
+      var digits = trimmed.replace(/\D/g, '');
+      if (digits.length < 7 || digits.length > 15) {
+        return 'Please enter a valid phone number between 7 and 15 digits.';
+      }
+      return '';
+
+    case 'emailAddress':
+      if (!trimmed) return 'Please enter your email address.';
+      var emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/;
+      if (!emailRegex.test(trimmed)) {
+        return 'Please enter a valid email address.';
+      }
+      return '';
+
+    case 'organisationName':
+      if (!trimmed) return 'Please enter your organisation name.';
+      if (trimmed.length < 2) return 'Organisation name must be at least 2 characters.';
+      if (/^\d+$/.test(trimmed)) {
+        return 'Please enter a valid organisation name.';
+      }
+      if (!/[a-zA-Z]/.test(trimmed)) {
+        return 'Please enter a valid organisation name.';
+      }
+      if (!/^[a-zA-Z0-9\s&.,'\-()]+$/.test(trimmed)) {
+        return 'Please enter a valid organisation name.';
+      }
+      return '';
+
+    default:
+      return '';
+  }
+}
+
+function setFieldError(fieldName, errorMsg) {
+  var inputEl = document.getElementById(fieldName);
+  var errorEl = document.getElementById(fieldName + '-error');
+  if (errorMsg) {
+    inputEl.classList.add('input-error');
+    errorEl.textContent = errorMsg;
+    errorEl.style.display = 'block';
+  } else {
+    inputEl.classList.remove('input-error');
+    errorEl.textContent = '';
+    errorEl.style.display = 'none';
+  }
+}
+
+function validateFieldOnBlur(fieldName) {
+  var val = document.getElementById(fieldName).value;
+  var err = validateFieldValue(fieldName, val);
+  setFieldError(fieldName, err);
+}
+
+function handleFieldInput(fieldName) {
+  var val = document.getElementById(fieldName).value;
+  var errorEl = document.getElementById(fieldName + '-error');
+  if (fieldName === 'phoneNumber' && /[a-zA-Z]/.test(val)) {
+    setFieldError('phoneNumber', 'Please enter a valid phone number containing only digits.');
+    return;
+  }
+  if (errorEl && errorEl.style.display === 'block') {
+    var err = validateFieldValue(fieldName, val);
+    setFieldError(fieldName, err);
+  }
+}
+
 function handlePilotSubmit(e) {
   e.preventDefault();
-  var errorEl = document.getElementById('form-error');
-  errorEl.style.display = 'none';
+
+  var fields = ['fullName', 'phoneNumber', 'emailAddress', 'organisationName'];
+  var hasErrors = false;
+
+  fields.forEach(function(f) {
+    var val = document.getElementById(f).value;
+    var err = validateFieldValue(f, val);
+    setFieldError(f, err);
+    if (err) hasErrors = true;
+  });
+
+  if (hasErrors) {
+    return;
+  }
 
   var fullName        = document.getElementById('fullName').value.trim();
   var phoneNumber     = document.getElementById('phoneNumber').value.trim();
   var emailAddress    = document.getElementById('emailAddress').value.trim();
   var organisationName = document.getElementById('organisationName').value.trim();
-
-  /* Basic validation */
-  if (!fullName || !phoneNumber || !emailAddress || !organisationName) {
-    errorEl.textContent = 'Please complete all fields before submitting.';
-    errorEl.style.display = 'block';
-    return;
-  }
-  /* Email format */
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailAddress)) {
-    errorEl.textContent = 'Please enter a valid email address.';
-    errorEl.style.display = 'block';
-    return;
-  }
 
   try {
     /* Read existing — NEVER overwrite */
@@ -2173,30 +2276,34 @@ function handlePilotSubmit(e) {
     }
 
     var newSub = {
-      id:                Date.now(),
-      fullName:          fullName,
-      phoneNumber:       phoneNumber,
-      emailAddress:      emailAddress,
-      organisationName:  organisationName,
+      id:                 Date.now(),
+      fullName:           fullName,
+      phoneNumber:        phoneNumber,
+      emailAddress:       emailAddress,
+      organisationName:   organisationName,
       submissionDateTime: new Date().toISOString()
     };
 
     var updated = existing.concat([newSub]);
     localStorage.setItem('wastewisePilotSubmissions', JSON.stringify(updated));
 
+    /* Reset form & errors */
+    document.getElementById('pilot-form').reset();
+    fields.forEach(function(f) { setFieldError(f, ''); });
+
     /* Show success */
     document.getElementById('pilot-form-wrap').style.display = 'none';
     document.getElementById('success-msg').style.display = 'block';
-
   } catch (err) {
-    errorEl.textContent = 'Something went wrong. Please try again.';
-    errorEl.style.display = 'block';
+    // safe fallback
   }
 }
 
 function resetForm() {
   document.getElementById('pilot-form').reset();
-  document.getElementById('form-error').style.display = 'none';
+  ['fullName', 'phoneNumber', 'emailAddress', 'organisationName'].forEach(function(f) {
+    setFieldError(f, '');
+  });
   document.getElementById('success-msg').style.display = 'none';
   document.getElementById('pilot-form-wrap').style.display = 'block';
 }

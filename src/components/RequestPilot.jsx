@@ -20,27 +20,119 @@ const INITIAL_FORM = {
 
 export default function RequestPilot() {
   const [formData, setFormData] = useState(INITIAL_FORM)
+  const [touched, setTouched] = useState({})
+  const [errors, setErrors] = useState({})
   const [submitted, setSubmitted] = useState(false)
-  const [error, setError] = useState('')
+
+  const validateField = (name, value) => {
+    const trimmed = value.trim()
+    switch (name) {
+      case 'fullName':
+        if (!trimmed) return 'Please enter your full name.'
+        if (trimmed.length < 2) return 'Full name must be at least 2 characters.'
+        if (!/^[a-zA-Z\s]+$/.test(trimmed)) {
+          return 'Please enter a valid full name containing only letters and spaces.'
+        }
+        if (trimmed.replace(/\s+/g, '').length < 2) {
+          return 'Full name must contain at least 2 letters.'
+        }
+        return ''
+
+      case 'phoneNumber':
+        if (!trimmed) return 'Please enter your phone number.'
+        if (/[a-zA-Z]/.test(trimmed)) {
+          return 'Please enter a valid phone number containing only digits.'
+        }
+        if (!/^[+]?[\d\s\-()]+$/.test(trimmed)) {
+          return 'Please enter a valid phone number containing only digits.'
+        }
+        {
+          const digits = trimmed.replace(/\D/g, '')
+          if (digits.length < 7 || digits.length > 15) {
+            return 'Please enter a valid phone number between 7 and 15 digits.'
+          }
+        }
+        return ''
+
+      case 'emailAddress':
+        if (!trimmed) return 'Please enter your email address.'
+        {
+          const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/
+          if (!emailRegex.test(trimmed)) {
+            return 'Please enter a valid email address.'
+          }
+        }
+        return ''
+
+      case 'organisationName':
+        if (!trimmed) return 'Please enter your organisation name.'
+        if (trimmed.length < 2) return 'Organisation name must be at least 2 characters.'
+        if (/^\d+$/.test(trimmed)) {
+          return 'Please enter a valid organisation name.'
+        }
+        if (!/[a-zA-Z]/.test(trimmed)) {
+          return 'Please enter a valid organisation name.'
+        }
+        if (!/^[a-zA-Z0-9\s&.,'\-()]+$/.test(trimmed)) {
+          return 'Please enter a valid organisation name.'
+        }
+        return ''
+
+      default:
+        return ''
+    }
+  }
 
   const handleChange = (e) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
-    setError('')
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+
+    // If field is already touched or has an error, revalidate on change
+    if (touched[name] || errors[name]) {
+      const err = validateField(name, value)
+      setErrors((prev) => ({ ...prev, [name]: err }))
+    } else if (name === 'phoneNumber' && /[a-zA-Z]/.test(value)) {
+      // Flag alphabet characters immediately while typing
+      setTouched((prev) => ({ ...prev, phoneNumber: true }))
+      setErrors((prev) => ({
+        ...prev,
+        phoneNumber: 'Please enter a valid phone number containing only digits.',
+      }))
+    }
+  }
+
+  const handleBlur = (e) => {
+    const { name, value } = e.target
+    setTouched((prev) => ({ ...prev, [name]: true }))
+    const err = validateField(name, value)
+    setErrors((prev) => ({ ...prev, [name]: err }))
   }
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    setError('')
 
-    const { fullName, phoneNumber, emailAddress, organisationName } = formData
+    const newErrors = {
+      fullName: validateField('fullName', formData.fullName),
+      phoneNumber: validateField('phoneNumber', formData.phoneNumber),
+      emailAddress: validateField('emailAddress', formData.emailAddress),
+      organisationName: validateField('organisationName', formData.organisationName),
+    }
 
-    if (!fullName.trim() || !phoneNumber.trim() || !emailAddress.trim() || !organisationName.trim()) {
-      setError('Please complete all fields before submitting.')
+    setTouched({
+      fullName: true,
+      phoneNumber: true,
+      emailAddress: true,
+      organisationName: true,
+    })
+    setErrors(newErrors)
+
+    const hasError = Object.values(newErrors).some((msg) => msg !== '')
+    if (hasError) {
       return
     }
 
     try {
-      // Read existing submissions — NEVER overwrite
+      // Read existing submissions safely — NEVER overwrite
       let existing = []
       try {
         const raw = localStorage.getItem('wastewisePilotSubmissions')
@@ -52,10 +144,10 @@ export default function RequestPilot() {
 
       const newSubmission = {
         id: Date.now(),
-        fullName: fullName.trim(),
-        phoneNumber: phoneNumber.trim(),
-        emailAddress: emailAddress.trim(),
-        organisationName: organisationName.trim(),
+        fullName: formData.fullName.trim(),
+        phoneNumber: formData.phoneNumber.trim(),
+        emailAddress: formData.emailAddress.trim(),
+        organisationName: formData.organisationName.trim(),
         submissionDateTime: new Date().toISOString(),
       }
 
@@ -63,9 +155,11 @@ export default function RequestPilot() {
       localStorage.setItem('wastewisePilotSubmissions', JSON.stringify(updated))
 
       setFormData(INITIAL_FORM)
+      setTouched({})
+      setErrors({})
       setSubmitted(true)
-    } catch (err) {
-      setError('Something went wrong saving your request. Please try again.')
+    } catch {
+      // Graceful error fallback
     }
   }
 
@@ -139,14 +233,14 @@ export default function RequestPilot() {
                     <CheckCircle size={32} className="text-[#2d5a3d]" />
                   </div>
                   <h3 className="text-xl font-bold text-[#1a3a2a] mb-3">
-                    Thank you. Your pilot request has been saved successfully.
+                    Thank you. Your pilot request has been submitted successfully.
                   </h3>
                   <p className="text-[#4a5568] text-sm leading-relaxed">
                     We appreciate your interest in WasteWise. We will be in touch to discuss how we can help your business.
                   </p>
                   <button
                     onClick={() => setSubmitted(false)}
-                    className="mt-6 text-sm text-[#2d5a3d] hover:underline font-medium"
+                    className="mt-6 text-sm text-[#2d5a3d] hover:underline font-medium cursor-pointer"
                   >
                     Submit another request
                   </button>
@@ -169,9 +263,19 @@ export default function RequestPilot() {
                         required
                         value={formData.fullName}
                         onChange={handleChange}
+                        onBlur={handleBlur}
                         placeholder="e.g. Jane Smith"
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 text-[#1a3a2a] text-sm placeholder-gray-400 focus:outline-none focus:border-[#2d5a3d] focus:ring-2 focus:ring-[#2d5a3d]/10 transition-all"
+                        className={`w-full px-4 py-3 rounded-xl border text-[#1a3a2a] text-sm placeholder-gray-400 focus:outline-none transition-all ${
+                          touched.fullName && errors.fullName
+                            ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-200 bg-red-50/20'
+                            : 'border-gray-200 focus:border-[#2d5a3d] focus:ring-2 focus:ring-[#2d5a3d]/10'
+                        }`}
                       />
+                      {touched.fullName && errors.fullName && (
+                        <p className="mt-1.5 text-xs text-red-600 font-medium">
+                          {errors.fullName}
+                        </p>
+                      )}
                     </div>
 
                     {/* Phone */}
@@ -187,9 +291,19 @@ export default function RequestPilot() {
                         required
                         value={formData.phoneNumber}
                         onChange={handleChange}
+                        onBlur={handleBlur}
                         placeholder="e.g. +44 7700 900123"
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 text-[#1a3a2a] text-sm placeholder-gray-400 focus:outline-none focus:border-[#2d5a3d] focus:ring-2 focus:ring-[#2d5a3d]/10 transition-all"
+                        className={`w-full px-4 py-3 rounded-xl border text-[#1a3a2a] text-sm placeholder-gray-400 focus:outline-none transition-all ${
+                          touched.phoneNumber && errors.phoneNumber
+                            ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-200 bg-red-50/20'
+                            : 'border-gray-200 focus:border-[#2d5a3d] focus:ring-2 focus:ring-[#2d5a3d]/10'
+                        }`}
                       />
+                      {touched.phoneNumber && errors.phoneNumber && (
+                        <p className="mt-1.5 text-xs text-red-600 font-medium">
+                          {errors.phoneNumber}
+                        </p>
+                      )}
                     </div>
 
                     {/* Email */}
@@ -205,9 +319,19 @@ export default function RequestPilot() {
                         required
                         value={formData.emailAddress}
                         onChange={handleChange}
+                        onBlur={handleBlur}
                         placeholder="e.g. jane@yourbakery.co.uk"
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 text-[#1a3a2a] text-sm placeholder-gray-400 focus:outline-none focus:border-[#2d5a3d] focus:ring-2 focus:ring-[#2d5a3d]/10 transition-all"
+                        className={`w-full px-4 py-3 rounded-xl border text-[#1a3a2a] text-sm placeholder-gray-400 focus:outline-none transition-all ${
+                          touched.emailAddress && errors.emailAddress
+                            ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-200 bg-red-50/20'
+                            : 'border-gray-200 focus:border-[#2d5a3d] focus:ring-2 focus:ring-[#2d5a3d]/10'
+                        }`}
                       />
+                      {touched.emailAddress && errors.emailAddress && (
+                        <p className="mt-1.5 text-xs text-red-600 font-medium">
+                          {errors.emailAddress}
+                        </p>
+                      )}
                     </div>
 
                     {/* Organisation */}
@@ -223,23 +347,26 @@ export default function RequestPilot() {
                         required
                         value={formData.organisationName}
                         onChange={handleChange}
+                        onBlur={handleBlur}
                         placeholder="e.g. Smith Bakery"
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 text-[#1a3a2a] text-sm placeholder-gray-400 focus:outline-none focus:border-[#2d5a3d] focus:ring-2 focus:ring-[#2d5a3d]/10 transition-all"
+                        className={`w-full px-4 py-3 rounded-xl border text-[#1a3a2a] text-sm placeholder-gray-400 focus:outline-none transition-all ${
+                          touched.organisationName && errors.organisationName
+                            ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-200 bg-red-50/20'
+                            : 'border-gray-200 focus:border-[#2d5a3d] focus:ring-2 focus:ring-[#2d5a3d]/10'
+                        }`}
                       />
+                      {touched.organisationName && errors.organisationName && (
+                        <p className="mt-1.5 text-xs text-red-600 font-medium">
+                          {errors.organisationName}
+                        </p>
+                      )}
                     </div>
                   </div>
-
-                  {/* Error */}
-                  {error && (
-                    <p className="mt-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
-                      {error}
-                    </p>
-                  )}
 
                   {/* Submit */}
                   <button
                     type="submit"
-                    className="mt-6 w-full bg-[#2d5a3d] hover:bg-[#1a3a2a] text-white font-semibold py-3.5 rounded-xl transition-all duration-200 text-sm shadow-sm hover:shadow-md"
+                    className="mt-6 w-full bg-[#2d5a3d] hover:bg-[#1a3a2a] text-white font-semibold py-3.5 rounded-xl transition-all duration-200 text-sm shadow-sm hover:shadow-md cursor-pointer"
                   >
                     Request a Pilot
                   </button>
