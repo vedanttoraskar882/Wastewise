@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { CheckCircle, ArrowRight } from 'lucide-react'
+import { sendPilotRequestEmail } from '../services/emailService'
 
 const JOURNEY_STEPS = [
   'Free Waste-Cost Assessment',
@@ -153,6 +154,9 @@ export default function RequestPilot() {
 
       const updated = [...existing, newSubmission]
       localStorage.setItem('wastewisePilotSubmissions', JSON.stringify(updated))
+
+      // Send email notification via EmailJS (non-blocking — does not affect form UX)
+      sendPilotRequestEmail(newSubmission).catch(() => {})
 
       setFormData(INITIAL_FORM)
       setTouched({})

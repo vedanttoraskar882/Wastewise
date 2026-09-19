@@ -1005,6 +1005,17 @@
       .footer-grid { grid-template-columns:1fr; }
     }
   </style>
+  <!-- EmailJS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <script>
+    (function() {
+      // Replace with your EmailJS public key once configured at https://emailjs.com
+      var EMAILJS_PUBLIC_KEY = 'YOUR_PUBLIC_KEY';
+      if (EMAILJS_PUBLIC_KEY && EMAILJS_PUBLIC_KEY !== 'YOUR_PUBLIC_KEY') {
+        emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+      }
+    })();
+  </script>
 </head>
 
 <body>
@@ -2286,6 +2297,38 @@ function handlePilotSubmit(e) {
 
     var updated = existing.concat([newSub]);
     localStorage.setItem('wastewisePilotSubmissions', JSON.stringify(updated));
+
+    /* Send email notification via EmailJS (non-blocking) */
+    (function() {
+      var SERVICE_ID  = 'YOUR_SERVICE_ID';
+      var TEMPLATE_ID = 'YOUR_TEMPLATE_ID';
+      if (
+        typeof emailjs !== 'undefined' &&
+        SERVICE_ID  !== 'YOUR_SERVICE_ID' &&
+        TEMPLATE_ID !== 'YOUR_TEMPLATE_ID'
+      ) {
+        var formattedDate = new Date(newSub.submissionDateTime).toLocaleString('en-GB', {
+          dateStyle: 'full', timeStyle: 'short'
+        });
+        emailjs.send(SERVICE_ID, TEMPLATE_ID, {
+          to_email:          'Biralprajapati9@gmail.com',
+          to_name:           'Biral Prajapati',
+          from_name:         newSub.fullName,
+          full_name:         newSub.fullName,
+          phone_number:      newSub.phoneNumber,
+          email_address:     newSub.emailAddress,
+          reply_to:          newSub.emailAddress,
+          organisation_name: newSub.organisationName,
+          submission_date:   formattedDate,
+          message: 'New Pilot Request Received:\n----------------------------------\nFull Name: ' + newSub.fullName +
+                   '\nPhone Number: ' + newSub.phoneNumber +
+                   '\nEmail Address: ' + newSub.emailAddress +
+                   '\nOrganisation Name: ' + newSub.organisationName +
+                   '\nSubmission Time: ' + formattedDate +
+                   '\n----------------------------------'
+        }).catch(function() {});
+      }
+    })();
 
     /* Reset form & errors */
     document.getElementById('pilot-form').reset();
