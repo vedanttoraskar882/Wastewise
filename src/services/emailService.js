@@ -3,11 +3,11 @@ import emailjs from '@emailjs/browser'
 // Target recipient email
 export const TARGET_EMAIL = 'Biralprajapati9@gmail.com'
 
-// EmailJS credentials from environment variables or direct fallback
+// EmailJS credentials — env vars take priority, hardcoded values are fallback
 export const EMAILJS_CONFIG = {
-  serviceId: import.meta.env.VITE_EMAILJS_SERVICE_ID || '',
-  templateId: import.meta.env.VITE_EMAILJS_TEMPLATE_ID || '',
-  publicKey: import.meta.env.VITE_EMAILJS_PUBLIC_KEY || '',
+  serviceId:  import.meta.env.VITE_EMAILJS_SERVICE_ID  || 'service_dqh0hja',
+  templateId: import.meta.env.VITE_EMAILJS_TEMPLATE_ID || 'template_ihwr8gb',
+  publicKey:  import.meta.env.VITE_EMAILJS_PUBLIC_KEY  || 'mx5aBaqOxOjKO9qoi',
 }
 
 /**
