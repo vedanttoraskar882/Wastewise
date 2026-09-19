@@ -375,11 +375,8 @@ export default function RequestPilot() {
                     Request a Pilot
                   </button>
 
-                  {/* Privacy note */}
-                  <p className="text-center text-xs text-[#718096] mt-4">
-                    For this frontend prototype, submitted details are stored locally in this browser.
-                  </p>
                 </form>
+
               )}
             </div>
           </div>
